@@ -1,0 +1,24 @@
+[
+  {
+    "id": "5bc1757f-b0ba-4ddd-831d-cef1cfa7c9f0",
+    "username": "Manisha",
+    "age": 29,
+    "hobbies": [
+      "Playing"
+    ]
+  },
+  {
+    "id": "dd69f4a8-712c-4b15-8ac2-15d26dd92587",
+    "username": "Rani Barkhane",
+    "age": "24",
+    "hobbies": "drawing"
+  },
+  {
+    "id": "f50b5e99-8e07-4738-bfcb-f9636e5d2476",
+    "username": "Purvi Bhor",
+    "age": 24,
+    "hobbies": [
+      "Coocking"
+    ]
+  }
+]
