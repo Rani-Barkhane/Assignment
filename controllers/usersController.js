@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
-const userSchema = require('../userSchema');
+const userSchema = require('../schema/userSchema');
 const DATA_FILE = 'data.json';
 
 // Load data from the JSON file on server start
