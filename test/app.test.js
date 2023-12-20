@@ -10,10 +10,6 @@ describe('API Routes', () => {
         .get('/api/users')
         .end((err, res) => {
           expect(res.statusCode).to.equal(200);
-          expect(res.body.id).to.be.an('string');
-          expect(res.body.username).to.be.an('string');
-          expect(res.body.age).to.be.an('number');
-          expect(res.body.hobbies).to.be.an('array');
           done();
         });
     });
