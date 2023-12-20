@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
-// const Joi = require('joi');
 const userSchema = require('../userSchema');
 const DATA_FILE = 'data.json';
 
@@ -25,8 +24,6 @@ function saveData(data) {
   }
 }
 
-
-
 exports.getAllUsers = (req, res) => {
   res.status(200).json(users);
 };
@@ -41,8 +38,6 @@ exports.getUserById = (req, res) => {
     res.status(404).json({ error: 'User not found' });
   }
 };
-
-exports.users = users;
 
 exports.createUser = (req, res) => {
   const { error, value } = userSchema.validate(req.body);
@@ -94,7 +89,7 @@ exports.deleteUser = (req, res) => {
   if (userIndex !== -1) {
     users.splice(userIndex, 1);
     saveData(users);
-    res.status(204).send();
+    res.status(204).json({success:"User deleted successfully"});
   } else {
     res.status(404).json({ error: 'User not found' });
   }
