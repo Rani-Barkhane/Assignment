@@ -1,9 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const { v4: uuidv4 } = require('uuid');
-const cluster = require('cluster');
+const mongoose = require('mongoose');
 const usersController = require('./controllers/usersController');
-
+const cluster = require('cluster')
 dotenv.config();
 
 const app = express();
@@ -11,10 +10,15 @@ const PORT = process.env.PORT || 4000; // Port for load balancer
 
 app.use(express.json());
 
-// Middleware to validate UUID
-const validateUUID = (req, res, next) => {
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log('MongoDB Connected...'))
+.catch(err => console.log(err));
+
+// Middleware to validate MongoDB ObjectId
+const validateObjectId = (req, res, next) => {
   const userId = req.params.userId;
-  if (!userId || typeof userId !== 'string' || !uuidv4(userId)) {
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ error: 'Invalid or missing user ID' });
   }
 
@@ -23,10 +27,10 @@ const validateUUID = (req, res, next) => {
 
 // Routes
 app.get('/api/users', usersController.getAllUsers);
-app.get('/api/users/:userId', validateUUID, usersController.getUserById);
+app.get('/api/users/:userId', validateObjectId, usersController.getUserById);
 app.post('/api/users', usersController.createUser);
-app.put('/api/users/:userId', validateUUID, usersController.updateUser);
-app.delete('/api/users/:userId', validateUUID, usersController.deleteUser);
+app.put('/api/users/:userId', validateObjectId, usersController.updateUser);
+app.delete('/api/users/:userId', validateObjectId, usersController.deleteUser);
 
 // Handle 404
 app.use((req, res) => {

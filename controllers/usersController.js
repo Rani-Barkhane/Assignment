@@ -1,36 +1,17 @@
+const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
-const userSchema = require('../schema/userSchema');
-const DATA_FILE = './db/data.json';
+const User = require('../schema/userSchema');
 
-// Load data from the JSON file on server start
-let users = loadData();
-
-function loadData() {
-  try {
-    const data = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error loading data:', error.message);
-    return [];
-  }
-}
-
-function saveData(data) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error('Error saving data:', error.message);
-  }
-}
-
-exports.getAllUsers = (req, res) => {
+// get all user
+exports.getAllUsers = async (req, res) => {
+  const users = await User.find();
   res.status(200).json(users);
 };
 
-exports.getUserById = (req, res) => {
+// get user by id
+exports.getUserById = async (req, res) => {
   const userId = req.params.userId;
-  const user = users.find((u) => u.id === userId);
+  const user = await User.findById(userId);
 
   if (user) {
     res.status(200).json(user);
@@ -39,58 +20,61 @@ exports.getUserById = (req, res) => {
   }
 };
 
-exports.createUser = (req, res) => {
-  const { error, value } = userSchema.validate(req.body);
+// create new user
+exports.createUser = async (req, res) => {
+  const { error, value } = User.validate(req.body);
 
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
 
-  const newUser = {
+  const newUser = new User({
     id: uuidv4(),
-    username: value.username,
-    age: value.age,
-    hobbies: value.hobbies || [],
-  };
+    username: req.body.username,
+    age: req.body.age,
+    hobbies: req.body.hobbies || [],
+  });
 
-  users.push(newUser);
-  saveData(users);
+  await newUser.save();
   res.status(201).json(newUser);
 };
 
-exports.updateUser = (req, res) => {
-  const userId = req.params.userId.toLowerCase();
-  const { error, value } = userSchema.validate(req.body);
+// update user by id
+exports.updateUser = async (req, res) => {
+  const userId = req.params.userId;
+  const user = await User.findById(userId);
 
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
   }
 
-  const userIndex = users.findIndex((u) => u.id.toLowerCase() === userId);
+  const { error, value } = User.validate(req.body);
 
-  if (userIndex !== -1) {
-    users[userIndex] = {
-      id: userId,
-      username: value.username || users[userIndex].username,
-      age: value.age || users[userIndex].age,
-      hobbies: value.hobbies || users[userIndex].hobbies,
-    };
-    saveData(users);
-    res.status(200).json(users[userIndex]);
-  } else {
-    res.status(404).json({ error: 'User not found' });
+  if (error) {
+    return res.status(400).json({ error: "User id is invalid" });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
+    if (!updatedUser) {
+      throw new Error('Error updating user');
+    }
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-exports.deleteUser = (req, res) => {
-  const userId = req.params.userId.toLowerCase();
-  const userIndex = users.findIndex((u) => u.id.toLowerCase() === userId);
+exports.deleteUser = async (req, res) => {
+  const userId = req.params.userId;
 
-  if (userIndex !== -1) {
-    users.splice(userIndex, 1);
-    saveData(users);
-    res.status(204).json({success:"User deleted successfully"});
-  } else {
-    res.status(404).json({ error: 'User not found' });
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
   }
+
+  await User.deleteOne({ _id: userId });
+
+  res.status(204).send();
 };

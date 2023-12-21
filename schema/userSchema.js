@@ -1,10 +1,10 @@
-const Joi = require('joi');
+const mongoose = require('mongoose');
 
-const userSchema = Joi.object({
-  id: Joi.string().uuid().optional(),
-  username: Joi.string().required(),
-  age: Joi.number().required(),
-  hobbies: Joi.array().items(Joi.string()).required(),
+const UserSchema = new mongoose.Schema({
+  id: { type: String, unique: true },
+  username: { type: String, required: true, unique: false },
+  age: { type: Number, required: true },
+  hobbies: { type: [String], default: [] },
 });
 
-module.exports = userSchema;
+module.exports = mongoose.model('User', UserSchema);
